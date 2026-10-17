@@ -1,0 +1,12 @@
+{
+  "name": "enjinia",
+  "description": "Engineering lifecycle for agent teams: requirements, conceptual design, application design, implementation and review, with gates and evidence.",
+  "author": {
+    "name": "Prashant Vithani",
+    "email": "prashantvithani@gmail.com"
+  },
+  "license": "MIT",
+  "skills": [
+    "./adapters/claude-code/skills/"
+  ]
+}

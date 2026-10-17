@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "enjinia",
+  "description": "Enjinia, an engineering lifecycle for agent teams.",
+  "owner": {
+    "name": "Prashant Vithani"
+  },
+  "plugins": [
+    {
+      "name": "enjinia",
+      "description": "Engineering lifecycle for agent teams.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
