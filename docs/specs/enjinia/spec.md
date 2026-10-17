@@ -162,6 +162,10 @@ docs/architecture/  project-level as-is model and conventions.md
 
 Tests carry `covers` metadata. Clojure: `^{:covers [:BR-2]}` on `deftest`.
 
+Formats are provisional until the eval (plan P6). Each format has one reader
+in `trace_check.py` and one example in its fixture, so a change touches
+those two places. Freeze them before B reads them.
+
 ## 6. Traceability
 
 The matrix `requirement -> invariant -> component -> test -> task ->
@@ -359,6 +363,9 @@ tools), and the orchestrator uses them only when present. The boundary sits
 at the role, not at the API call or the agent loop, so each vendor runs on
 its own tuned harness. Which model runs which role is policy, set by the
 eval.
+
+Enjinia runs on any codebase. Which vendors may receive a target repo's code
+is a per-repo setting; a role never runs on a vendor the repo does not allow.
 
 Claude only at first. A second vendor is added for the reviewer role only,
 when the seeded-defect eval shows it catches defects Claude misses. Protocol:

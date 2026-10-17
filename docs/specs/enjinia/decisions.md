@@ -444,8 +444,8 @@ role boundary exists already; it costs almost nothing to make it the seam.
   This is small: roles already start from files, not from a shared transcript.
 - Process cost: one subprocess or SDK session per role run. Small next to
   model latency.
-- Data: each extra vendor receives the code it reviews. Fine for this
-  personal project; check before pointing it at an employer's repo.
+- Data: each extra vendor receives the code it reviews. Enjinia runs on any
+  codebase, so which vendors may see a target repo is a per-repo setting.
 
 ## Where multiple models pay off
 
