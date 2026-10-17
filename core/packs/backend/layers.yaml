@@ -1,4 +1,6 @@
-# Layer dependencies the backend pack forbids: [from_layer, to_layer].
+# Layers a backend component may declare, and the dependencies between them
+# the backend pack forbids: [from_layer, to_layer].
 # Read by core/scripts/trace_check.py (spec.md section 7.1).
+layers: [ui, domain, persistence, infra]
 forbidden:
   - [domain, infra]

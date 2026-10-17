@@ -113,6 +113,35 @@ CASES = {
 }
 
 
+# Each case: edits that break a type rule -> text the error must contain.
+INVALID = {
+    "implicit boolean (YAML `no`)": ({"concept.md": ("tier: property", "tier: no")}, "`tier` is False"),
+    "covers not a list": ({"concept.md": ("covers: [BR-1]", "covers: BR-1")}, "`covers` is 'BR-1'"),
+    "malformed id": ({"concept.md": ("id: INV-2", "id: inv two")}, "`id` is 'inv two'"),
+    "missing required field": ({"concept.md": ("    tier: property\n", "")}, "missing `tier`"),
+    "unknown layer": ({"design.md": ("layer: domain", "layer: domian")}, "`layer` is 'domian'"),
+    "number read from 1.10": ({"tasks.yaml": ("slice: S2", "slice: 1.10")}, "`slice` is 1.1"),
+    "record not a mapping": ({"tasks.yaml": ("- id: T3", "- T3\n- id: T4")}, "expected a mapping"),
+}
+
+
+def run_invalid(edits):
+    """Apply edits to a copy of the clean fixture; return the InputError text."""
+    with tempfile.TemporaryDirectory() as tmp:
+        spec = Path(tmp) / "spec"
+        shutil.copytree(CLEAN, spec)
+        for name, (old, new) in edits.items():
+            f = spec / name
+            assert old in f.read_text(), f"fixture edit did not apply: {name}: {old!r}"
+            f.write_text(f.read_text().replace(old, new, 1))
+        try:
+            trace_check.check(spec, [spec / "test"], [spec / "report.xml"])
+        except trace_check.InputError as e:
+            assert cli([str(spec)]) == 2, "invalid input must exit 2"
+            return str(e)
+        raise AssertionError("invalid input was accepted")
+
+
 def cli(args):
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         return trace_check.main(args)
@@ -140,7 +169,12 @@ def main():
         (bad / "tasks.yaml").write_text("- id: [unclosed\n")
         assert cli([str(bad)]) == 2, "unreadable input must exit 2, not report gaps"
 
-    print(f"ok: clean spec, {len(CASES)} mutations covering {len(gap_kinds)} gap kinds, CLI exit codes")
+    for name, (edits, want) in INVALID.items():
+        got = run_invalid(edits)
+        assert want in got, f"{name}: want {want!r} in error, got {got!r}"
+
+    print(f"ok: clean spec, {len(CASES)} mutations covering {len(gap_kinds)} gap kinds, "
+          f"{len(INVALID)} invalid inputs, CLI exit codes")
 
 
 if __name__ == "__main__":

@@ -19,7 +19,11 @@ Tests: Clojure `(deftest ^{:covers [:BR-1 :INV-2]} name ...)` under --tests.
 Report: JUnit XML; a test passes if its testcase has no failure or error.
 
 --stage N fails only on gaps owned by stages 1..N (default 5).
---layers names a YAML file `forbidden: [[from_layer, to_layer], ...]`.
+--layers names a YAML file `layers: [names]` and
+`forbidden: [[from_layer, to_layer], ...]`.
+Records are type-checked (SCHEMAS); a wrong type, missing field or unknown
+value exits 2 with every problem listed, so YAML's implicit typing (`no`
+read as false, `1.10` as 1.1) fails loudly.
 Exit 0 when no gap, 1 on gaps, 2 on unreadable input.
 """
 import argparse
@@ -34,6 +38,56 @@ DEFAULT_LAYERS = Path(__file__).resolve().parents[1] / "packs/backend/layers.yam
 REQ_ITEM = re.compile(r"^\s*[-*]\s+([A-Z][A-Z0-9]*-\d+)\s*:")
 YAML_FENCE = re.compile(r"^```ya?ml\s*\n(.*?)^```", re.M | re.S)
 DEFTEST = re.compile(r"\(deftest\s+\^\{[^}]*:covers\s+\[([^\]]*)\][^}]*\}\s+([^\s()]+)")
+
+
+ID = re.compile(r"^[A-Z][A-Z0-9]*-\d+$")
+# Per record kind: field -> (type, required). "ids" is a list of requirement or
+# invariant ids; "names" a list of strings; a set is an allowed-values enum.
+SCHEMAS = {
+    "invariant": {"id": ("id", True), "covers": ("ids", True),
+                  "tier": ({"formal", "property", "example"}, True), "model": ("str", False)},
+    "component": {"name": ("str", True), "layer": ("layer", True), "owns": ("names", False),
+                  "depends_on": ("names", False), "realizes": ("ids", False)},
+    "task": {"id": ("str", True), "slice": ("str", False), "depends_on": ("names", False),
+             "covers": ("ids", False), "tests": ("names", False)},
+}
+
+
+class InputError(Exception):
+    """Malformed spec input: wrong types, missing fields, unknown values."""
+
+
+def validate(kind, records, where, layers):
+    """Raise InputError listing every field that breaks SCHEMAS[kind]."""
+    if not isinstance(records, list):
+        raise InputError(f"{where}: expected a list of {kind}s, got {type(records).__name__}")
+    errors = []
+    for n, rec in enumerate(records):
+        at = f"{where}: {kind} #{n + 1}"
+        if not isinstance(rec, dict):
+            errors.append(f"{at}: expected a mapping, got {rec!r}")
+            continue
+        for field, (typ, required) in SCHEMAS[kind].items():
+            if field not in rec or rec[field] is None:
+                if required:
+                    errors.append(f"{at}: missing `{field}`")
+                continue
+            v = rec[field]
+            ok = (isinstance(v, str) and bool(ID.match(v)) if typ == "id" else
+                  isinstance(v, str) if typ == "str" else
+                  v in layers if typ == "layer" else
+                  isinstance(v, list) and all(isinstance(x, str) and (typ == "names" or ID.match(x)) for x in v)
+                  if typ in ("ids", "names") else
+                  v in typ)
+            if not ok:
+                want = (f"one of {sorted(layers)}" if typ == "layer" else
+                        f"one of {sorted(typ)}" if isinstance(typ, set) else
+                        {"id": "an id like BR-1", "str": "a string",
+                         "ids": "a list of ids like [BR-1]", "names": "a list of strings"}[typ])
+                errors.append(f"{at}: `{field}` is {v!r}; expected {want}")
+    if errors:
+        raise InputError("\n".join(errors))
+    return records
 
 
 class Gap:
@@ -128,7 +182,12 @@ def check(spec, test_dirs=(), reports=(), layers_file=DEFAULT_LAYERS):
     tasks = (yaml.safe_load(tasks_path.read_text()) or []) if tasks_path.exists() else []
     tests = read_tests(test_dirs)
     report = read_report(reports)
-    forbidden = {tuple(e) for e in (yaml.safe_load(Path(layers_file).read_text()) or {}).get("forbidden", [])}
+    rules = yaml.safe_load(Path(layers_file).read_text()) or {}
+    layer_names = set(rules.get("layers", []))
+    forbidden = {tuple(e) for e in rules.get("forbidden", [])}
+    validate("invariant", invs, "concept.md", layer_names)
+    validate("component", comps, "design.md", layer_names)
+    validate("task", tasks, "tasks.yaml", layer_names)
 
     gaps = []
     inv_ids = [i["id"] for i in invs]
@@ -238,7 +297,10 @@ def main(argv=None):
     a = p.parse_args(argv)
     try:
         rows, gaps, layers = check(a.spec, a.tests, a.report, a.layers)
-    except (OSError, yaml.YAMLError, ET.ParseError, KeyError, TypeError) as e:
+    except InputError as e:
+        print(f"trace-check: invalid input:\n{e}", file=sys.stderr)
+        return 2
+    except (OSError, yaml.YAMLError, ET.ParseError) as e:
         print(f"trace-check: cannot read input: {e!r}", file=sys.stderr)
         return 2
     print(render(rows))
