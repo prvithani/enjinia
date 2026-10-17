@@ -1,0 +1,624 @@
+<title>Agentic Lifecycle Dry Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one long engineering drawing set. Each stage is a "sheet" with a title block; a sticky stage rail on top. */
+:root {
+  --paper: #f2f4f6;
+  --sheet: #ffffff;
+  --ink: #18212b;
+  --ink-2: #4a5663;
+  --rule: #c9d1d9;
+  --rule-soft: #e3e8ec;
+  --accent: #2a55c4;
+  --accent-soft: #e4ebfb;
+  --gate: #9a6410;
+  --gate-soft: #fbf0dc;
+  --ok: #23714a;
+  --ok-soft: #dff1e7;
+  --bad: #a83232;
+  --bad-soft: #f8e1e1;
+  --s1: #2a55c4; --s2: #7a4bb5; --s3: #1f7f86; --s4: #23714a; --s5: #9a6410;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0f1419; --sheet: #161d24; --ink: #dde4ea; --ink-2: #9aa8b5; --rule: #2f3a45; --rule-soft: #222b34;
+  --accent: #82a3ff; --accent-soft: #1d2a4a; --gate: #e0ad5a; --gate-soft: #33280f; --ok: #6fcf9b; --ok-soft: #14301f;
+  --bad: #f08a8a; --bad-soft: #3a1717;
+  --s1: #82a3ff; --s2: #b99be6; --s3: #6ccbd2; --s4: #6fcf9b; --s5: #e0ad5a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0f1419; --sheet: #161d24; --ink: #dde4ea; --ink-2: #9aa8b5; --rule: #2f3a45; --rule-soft: #222b34;
+  --accent: #82a3ff; --accent-soft: #1d2a4a; --gate: #e0ad5a; --gate-soft: #33280f; --ok: #6fcf9b; --ok-soft: #14301f;
+  --bad: #f08a8a; --bad-soft: #3a1717;
+  --s1: #82a3ff; --s2: #b99be6; --s3: #6ccbd2; --s4: #6fcf9b; --s5: #e0ad5a; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--sheet) }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; display: grid; gap: 28px }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1 }
+h1 { font-size: clamp(30px, 5vw, 44px) }
+h2 { font-size: 28px }
+h3 { font-size: 19px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2) }
+p { margin: 0; max-width: 68ch }
+code, .mono { font-family: var(--mono); font-size: .88em }
+.label { font-family: var(--display); text-transform: uppercase; letter-spacing: .1em; font-size: 12.5px; color: var(--ink-2) }
+
+header.top { padding-block: 32px 4px; display: grid; gap: 12px }
+.mock { display: inline-flex; gap: 8px; align-items: center; justify-self: start; border: 1px dashed var(--gate); color: var(--gate); background: var(--gate-soft); padding: 4px 10px; border-radius: 3px; font-size: 13px }
+.lede { color: var(--ink-2); font-size: 16.5px }
+
+nav.rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--sheet); border-bottom: 1px solid var(--rule); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 8px max(16px, env(safe-area-inset-left, 0px)); overflow-x: auto }
+nav.rail ol { list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 6px; max-width: 1040px }
+nav.rail a { display: flex; gap: 6px; align-items: baseline; white-space: nowrap; text-decoration: none; color: var(--ink); padding: 5px 10px; border-radius: 3px; font-family: var(--display); font-size: 15px; letter-spacing: .03em }
+nav.rail a:hover, nav.rail a:focus-visible { background: var(--accent-soft); outline: none }
+nav.rail a span { color: var(--ink-2); font-size: 12.5px }
+nav.rail .gate-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gate); align-self: center }
+
+/* Flow overview */
+.flow { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); background: var(--sheet) }
+.flow > div { padding: 12px 12px 14px; border-right: 1px solid var(--rule-soft); display: grid; gap: 4px; align-content: start; min-width: 0 }
+.flow > div:last-child { border-right: 0 }
+.flow .n { font-family: var(--display); font-size: 13px; color: var(--ink-2); letter-spacing: .08em }
+.flow .t { font-family: var(--display); font-size: 18px; font-weight: 600 }
+.flow .g { font-size: 12.5px; color: var(--gate) }
+.flow .d { font-size: 13px; color: var(--ink-2) }
+.loops { font-size: 13.5px; color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 18px }
+.loops b { color: var(--ink); font-weight: 600 }
+
+/* Sheets */
+.sheet { background: var(--sheet); border: 1px solid var(--rule); display: grid; scroll-margin-top: 64px }
+.sheet-body { padding: 22px 22px 24px; display: grid; gap: 20px; min-width: 0 }
+.tblock { display: grid; grid-template-columns: 2.2fr 1fr 1fr 1fr 1.3fr; border-top: 1px solid var(--rule) }
+.tblock > div { padding: 8px 12px; border-right: 1px solid var(--rule-soft); display: grid; gap: 1px; min-width: 0 }
+.tblock > div:last-child { border-right: 0 }
+.tblock .v { font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere }
+.stripe { height: 4px }
+.sheet-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px }
+.cols > * { min-width: 0 }
+.box { border: 1px solid var(--rule-soft); padding: 14px 16px; display: grid; gap: 10px; align-content: start }
+
+ul.req { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+ul.req li { display: grid; grid-template-columns: 62px 1fr; gap: 10px; font-size: 14px }
+ul.req li .id { font-family: var(--mono); font-size: 12.5px; color: var(--accent); padding-top: 1px }
+.added { background: var(--accent-soft); outline: 1px solid var(--accent-soft) }
+.added-tag { font-size: 11.5px; font-family: var(--mono); color: var(--accent); border: 1px solid var(--accent); padding: 0 5px; border-radius: 2px; margin-left: 6px; white-space: nowrap }
+
+.chat { display: grid; gap: 8px; font-size: 14px }
+.chat .m { display: grid; grid-template-columns: 112px 1fr; gap: 10px }
+.chat .who { font-family: var(--mono); font-size: 12px; color: var(--ink-2); padding-top: 2px }
+.chat .you .who { color: var(--gate) }
+
+pre.spec { margin: 0; font-family: var(--mono); font-size: 12.8px; line-height: 1.6; background: var(--paper); border: 1px solid var(--rule-soft); padding: 12px 14px; overflow-x: auto; color: var(--ink) }
+pre.spec .c { color: var(--ink-2) }
+pre.spec .k { color: var(--s2) }
+
+.callout { border-left: 3px solid var(--bad); background: var(--bad-soft); padding: 10px 14px; display: grid; gap: 6px; font-size: 14px }
+.callout.loop { border-color: var(--accent); background: var(--accent-soft) }
+.callout.ok { border-color: var(--ok); background: var(--ok-soft) }
+.callout b { font-weight: 600 }
+
+.gate { border: 1px solid var(--gate); background: var(--gate-soft); padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font-size: 14px }
+.gate .label { color: var(--gate) }
+.gate .who { font-family: var(--mono); font-size: 12.5px }
+
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--rule-soft) }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule-soft); vertical-align: top }
+th { font-family: var(--display); font-weight: 500; text-transform: uppercase; letter-spacing: .07em; font-size: 12.5px; color: var(--ink-2); background: var(--paper); white-space: nowrap }
+tr:last-child td { border-bottom: 0 }
+td.mono, td code { font-family: var(--mono); font-size: 12.5px }
+
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; white-space: nowrap; font-family: var(--body) }
+.pill.ok { background: var(--ok-soft); color: var(--ok) }
+.pill.bad { background: var(--bad-soft); color: var(--bad) }
+.pill.gate { background: var(--gate-soft); color: var(--gate) }
+.pill.acc { background: var(--accent-soft); color: var(--accent) }
+
+/* DAG */
+.dag-wrap { overflow-x: auto; border: 1px solid var(--rule-soft); background: var(--paper) }
+.dag { display: block; min-width: 720px; width: 100% }
+.dag .band { fill: var(--sheet) }
+.dag .band-label { fill: var(--ink-2); font: 600 12px var(--display); letter-spacing: .08em; text-transform: uppercase }
+.dag .layer { fill: var(--ink-2); font: 500 11px var(--mono) }
+.dag .layer-line { stroke: var(--rule); stroke-dasharray: 3 4 }
+.dag .edge { fill: none; stroke: var(--ink-2); stroke-width: 1.3 }
+.dag .arrow { fill: var(--ink-2) }
+.dag .node rect { stroke-width: 1.5 }
+.dag .node text { font: 500 12px var(--mono); fill: var(--ink) }
+.dag .done rect { fill: var(--ok-soft); stroke: var(--ok) }
+.dag .review rect { fill: var(--gate-soft); stroke: var(--gate) }
+.dag .todo rect { fill: var(--sheet); stroke: var(--rule) }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--ink-2) }
+.legend i { display: inline-block; width: 12px; height: 12px; border: 1.5px solid; vertical-align: -2px; margin-right: 5px }
+.legend .l-done { background: var(--ok-soft); border-color: var(--ok) }
+.legend .l-rev { background: var(--gate-soft); border-color: var(--gate) }
+.legend .l-todo { background: var(--sheet); border-color: var(--rule) }
+
+.rounds { display: grid; gap: 10px }
+.round { display: grid; grid-template-columns: 74px 1fr; gap: 12px; font-size: 14px; border-top: 1px solid var(--rule-soft); padding-top: 10px }
+.round:first-child { border-top: 0; padding-top: 0 }
+.round .r { font-family: var(--display); font-size: 15px; font-weight: 600 }
+.round div { display: grid; gap: 4px; min-width: 0 }
+
+.board { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 14px }
+.board li { display: grid; grid-template-columns: 24px 1fr; gap: 6px }
+.board code { font-size: 12.5px }
+
+/* Traceability matrix */
+.matrix-head { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between }
+.stage-pick { display: flex; flex-wrap: wrap; gap: 4px }
+.stage-pick button { font: 500 14px var(--display); letter-spacing: .04em; border: 1px solid var(--rule); background: var(--sheet); color: var(--ink); padding: 5px 11px; border-radius: 3px; cursor: pointer }
+.stage-pick button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink) }
+.stage-pick button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+#matrix th .sw { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px }
+#matrix td.empty { color: var(--rule); }
+#matrix td.gap { color: var(--bad); font-weight: 600 }
+.ctx td:first-child { font-family: var(--mono); font-size: 12.5px; white-space: nowrap }
+
+.foot { font-size: 13px; color: var(--ink-2); display: grid; gap: 6px }
+
+@media (max-width: 760px) {
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .flow > div { border-bottom: 1px solid var(--rule-soft) }
+  .tblock { grid-template-columns: 1fr 1fr }
+  .tblock > div:first-child { grid-column: 1 / -1 }
+  .chat .m, .round { grid-template-columns: 1fr; gap: 2px }
+  .sheet-body { padding: 16px }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="mock">Mock run. The feature, the conversation and every number are invented to show the shape.</span>
+    <h1>Agentic Lifecycle Dry Run</h1>
+    <p class="lede">One feature, <code>webhook-ingest</code>, taken through the five stages: requirements, conceptual design, application design, implementation and review. Each stage writes one file. The next stage reads that file, not the transcript. A traceability matrix grows column by column and decides the final gate.</p>
+  </header>
+
+  <nav class="rail" aria-label="Stages">
+    <ol>
+      <li><a href="#triage">0 <span>Triage</span></a></li>
+      <li><a href="#req">1 <span>Requirements</span><i class="gate-dot" title="Human gate"></i></a></li>
+      <li><a href="#concept">2 <span>Concept</span><i class="gate-dot" title="Human gate"></i></a></li>
+      <li><a href="#design">3 <span>App design</span><i class="gate-dot" title="Human gate"></i></a></li>
+      <li><a href="#impl">4 <span>Implementation</span></a></li>
+      <li><a href="#review">5 <span>Review</span><i class="gate-dot" title="Human gate"></i></a></li>
+      <li><a href="#trace">Matrix</a></li>
+      <li><a href="#context">Context</a></li>
+    </ol>
+  </nav>
+
+  <section aria-label="Flow overview" style="display:grid;gap:10px">
+    <div class="flow">
+      <div><span class="n">STAGE 0</span><span class="t">Triage</span><span class="d">Size the work. Pick which stages run.</span></div>
+      <div><span class="n">STAGE 1</span><span class="t">Requirements</span><span class="d">Interview until IDs are stable.</span><span class="g">Gate: you sign off</span></div>
+      <div><span class="n">STAGE 2</span><span class="t">Concept</span><span class="d">Model, invariants, model check, capacity estimate.</span><span class="g">Gate: you sign off</span></div>
+      <div><span class="n">STAGE 3</span><span class="t">App design</span><span class="d">Components, interfaces, ADRs, slices, tests from spec.</span><span class="g">Gate: you sign off</span></div>
+      <div><span class="n">STAGE 4</span><span class="t">Implementation</span><span class="d">Task DAG per slice. Peer review, max 3 rounds.</span></div>
+      <div><span class="n">STAGE 5</span><span class="t">Review</span><span class="d">Per slice, then final integrity and coverage.</span><span class="g">Gate: you sign off</span></div>
+    </div>
+    <div class="loops"><span><b>Loopbacks in this run.</b></span><span>L1. Stage 2 to stage 1: retry semantics unclear.</span><span>L2. Stage 4 review cites a stage 2 counterexample.</span><span>Stages 2 to 5 repeat for each slice; stage 1 and the concept skeleton run once.</span></div>
+  </section>
+
+  <!-- STAGE 0 -->
+  <article class="sheet" id="triage">
+    <div class="stripe" style="background:var(--ink-2)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Triage</h2><span class="label">Sheet 0 of 5</span></div>
+      <div class="cols">
+        <div class="box">
+          <h3>Input</h3>
+          <p>Ticket: "Partners push order events by webhook. Today we poll their APIs every 15 minutes and orders arrive late. Switch to push. Finance says double-counted orders are the worst outcome."</p>
+        </div>
+        <div class="box">
+          <h3>Decision</h3>
+          <table><tbody>
+            <tr><td>Size</td><td><span class="pill acc">large</span></td></tr>
+            <tr><td>Why</td><td>Money data, concurrency, crash and retry paths.</td></tr>
+            <tr><td>Stages</td><td>All five. Formal tier allowed in stage 2.</td></tr>
+            <tr><td>Small work</td><td>Would skip to stage 4 with a one-paragraph spec.</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">docs/specs/webhook-ingest/triage.md</span></div>
+      <div><span class="label">Agent</span><span class="v">lead (main)</span></div>
+      <div><span class="label">Model</span><span class="v">opus</span></div>
+      <div><span class="label">Rev</span><span class="v">A</span></div>
+      <div><span class="label">Gate</span><span class="v">none</span></div>
+    </div>
+  </article>
+
+  <!-- STAGE 1 -->
+  <article class="sheet" id="req">
+    <div class="stripe" style="background:var(--s1)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Requirements</h2><span class="label">Sheet 1 of 5</span></div>
+      <div class="cols">
+        <div class="box">
+          <h3>Interview, round 2 of 3</h3>
+          <div class="chat">
+            <div class="m"><span class="who">analyst</span><span>Finance says double counting is worst. Is a late order acceptable if it is never doubled? How late?</span></div>
+            <div class="m you"><span class="who">you</span><span>Late by up to 5 minutes is fine. Lost or doubled is not.</span></div>
+            <div class="m"><span class="who">analyst</span><span>Do you need ordering between events of one order (created, then updated)?</span></div>
+            <div class="m you"><span class="who">you</span><span>Per order, yes. Across partners, no.</span></div>
+            <div class="m"><span class="who">analyst</span><span>Peak load? The poller logs show 1,400 events/s at the Black Friday peak.</span></div>
+            <div class="m you"><span class="who">you</span><span>Plan for 2,000/s.</span></div>
+          </div>
+        </div>
+        <div class="box">
+          <h3>requirements.md</h3>
+          <ul class="req">
+            <li><span class="id">BR-1</span><span>No order event is lost once acknowledged.</span></li>
+            <li><span class="id">BR-2</span><span>No order is counted twice.</span></li>
+            <li><span class="id">FR-1</span><span>Accept <code>POST /webhooks/:partner</code>.</span></li>
+            <li><span class="id">FR-2</span><span>Reject requests with a bad signature.</span></li>
+            <li><span class="id">FR-3</span><span>Operators can replay events by time range.</span></li>
+            <li class="added"><span class="id">FR-4</span><span>Treat a resend of the same event within 24 h as a duplicate.<span class="added-tag">added by L1</span></span></li>
+            <li><span class="id">NFR-1</span><span>p99 acknowledgment ≤ 200 ms at 2,000 events/s.</span></li>
+            <li><span class="id">NFR-2</span><span>Sustain 2,000 events/s; event applied within 5 min.</span></li>
+            <li><span class="id">TR-1</span><span>Use the existing Postgres cluster. No new broker.</span></li>
+            <li><span class="id">G-1</span><span>Goal: per-order event order is kept.</span></li>
+            <li><span class="id">NG-1</span><span>Non-goal: ordering across partners.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="gate"><span class="label">Human gate</span><span>Requirements sign-off.</span><span class="who">you: approved rev B (after L1)</span></div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">docs/specs/webhook-ingest/requirements.md</span></div>
+      <div><span class="label">Agent</span><span class="v">requirements-analyst</span></div>
+      <div><span class="label">Model</span><span class="v">opus</span></div>
+      <div><span class="label">Rev</span><span class="v">B</span></div>
+      <div><span class="label">Gate</span><span class="v">approved</span></div>
+    </div>
+  </article>
+
+  <!-- STAGE 2 -->
+  <article class="sheet" id="concept">
+    <div class="stripe" style="background:var(--s2)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Conceptual design</h2><span class="label">Sheet 2 of 5</span></div>
+      <p>Pure concepts. No tables, no HTTP, no language. The model states what must stay true. The model checker tries to break it under crashes and retries.</p>
+      <div class="cols">
+        <div class="box">
+          <h3>Model and invariants</h3>
+<pre class="spec"><span class="c">\* key of an event: (partner, event_id)</span>
+<span class="k">VARIABLES</span> accepted, applied, state
+state[k] ∈ {received, claimed, applied}
+
+<span class="c">\* INV-1 NoDoubleApply   (BR-2, FR-4)</span>
+∀ k : Count(applied, k) ≤ 1
+
+<span class="c">\* INV-2 NoLoss          (BR-1)</span>
+k ∈ accepted  ⇒  ◇ (k ∈ applied)
+
+<span class="c">\* INV-3 OnlySigned      (FR-2)</span>
+k ∈ accepted  ⇒  Valid(sig(k))
+
+<span class="c">\* INV-4 PerOrderOrder   (G-1)</span>
+seq(a) &lt; seq(b) ∧ order(a)=order(b)
+  ⇒ applyTime(a) &lt; applyTime(b)</pre>
+        </div>
+        <div class="box">
+          <h3>Verification tier per invariant</h3>
+          <table><thead><tr><th>Invariant</th><th>Tier</th><th>Why</th></tr></thead><tbody>
+            <tr><td><code>INV-1</code></td><td><span class="pill acc">formal</span></td><td>Money. Crash and retry interleavings.</td></tr>
+            <tr><td><code>INV-2</code></td><td><span class="pill acc">formal</span></td><td>Liveness under worker crash.</td></tr>
+            <tr><td><code>INV-3</code></td><td><span class="pill ok">example</span></td><td>Stateless check.</td></tr>
+            <tr><td><code>INV-4</code></td><td><span class="pill gate">property</span></td><td>Pure ordering logic.</td></tr>
+          </tbody></table>
+          <h3>Capacity estimate</h3>
+          <p class="mono" style="font-size:13px">λ = 2,000/s · s = 4 ms · c = 12 workers<br>offered load = λ·s = 8 · ρ = 8/12 = 0.67</p>
+          <p style="font-size:13.5px;color:var(--ink-2)">Estimate, not a benchmark. Service time is a guess. Stage 4 measures it.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <b>Model check, run 1: INV-1 violated (CE-1).</b>
+        <span class="mono" style="font-size:12.8px">received → claimed(w1) → apply(w1) → crash(w1) → reclaim(w2) → apply(w2)</span>
+        <span>A worker applies the effect, then crashes before it marks the event done. A second worker applies it again.</span>
+        <span><b>Concept fix.</b> Apply and mark are one atomic step. Run 2: no violation in 1.2 M states.</span>
+      </div>
+      <div class="callout loop">
+        <b>Loopback L1 to requirements.</b>
+        <span>The model needs to know how partners retry. If a partner resends after a slow ack, the same event arrives twice with no crash at all. The requirements do not say how long resends can occur.</span>
+        <span>You answered: partners retry for up to 24 h. Result: new requirement <code>FR-4</code>, requirements rev B.</span>
+      </div>
+      <div class="gate"><span class="label">Human gate</span><span>Concept sign-off: invariants, tiers, estimate labelled as estimate.</span><span class="who">you: approved</span></div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">concept.md · model.tla · ce-1.trace</span></div>
+      <div><span class="label">Agent</span><span class="v">concept-modeler</span></div>
+      <div><span class="label">Model</span><span class="v">opus</span></div>
+      <div><span class="label">Rev</span><span class="v">B</span></div>
+      <div><span class="label">Gate</span><span class="v">approved</span></div>
+    </div>
+  </article>
+
+  <!-- STAGE 3 -->
+  <article class="sheet" id="design">
+    <div class="stripe" style="background:var(--s3)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Application design</h2><span class="label">Sheet 3 of 5</span></div>
+      <div class="cols">
+        <div class="box">
+          <h3>Components</h3>
+          <table><thead><tr><th>Component</th><th>Owns</th><th>Realizes</th></tr></thead><tbody>
+            <tr><td><code>ingress</code></td><td>Verify signature, insert into inbox, ack</td><td>INV-3</td></tr>
+            <tr><td><code>inbox</code></td><td>Table, unique key <code>(partner, event_id)</code></td><td>INV-1, INV-2</td></tr>
+            <tr><td><code>claim-loop</code></td><td><code>FOR UPDATE SKIP LOCKED</code>, per-order lock</td><td>INV-2, INV-4</td></tr>
+            <tr><td><code>applier</code></td><td>Effect + status in one transaction</td><td>INV-1 (CE-1 fix)</td></tr>
+            <tr><td><code>replay-cli</code></td><td>Reset status by time range</td><td>FR-3</td></tr>
+          </tbody></table>
+        </div>
+        <div class="box">
+          <h3>Sequence: happy path</h3>
+          <ol style="margin:0;padding-left:20px;display:grid;gap:4px;font-size:14px">
+            <li>Partner sends <code>POST /webhooks/acme</code>.</li>
+            <li><code>ingress</code> verifies the signature.</li>
+            <li><code>ingress</code> inserts into <code>inbox</code>. A duplicate key is a no-op.</li>
+            <li><code>ingress</code> returns 202. The ack is durable from here.</li>
+            <li><code>claim-loop</code> claims the oldest row for that order.</li>
+            <li><code>applier</code> writes the order and marks the row applied in one transaction.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="cols">
+        <div class="box">
+          <h3>Decision log</h3>
+          <table><tbody>
+            <tr><td class="mono">ADR-1</td><td>Postgres inbox over Kafka. TR-1 forbids a new broker. Load is 8 erlangs, well inside one primary.</td></tr>
+            <tr><td class="mono">ADR-2</td><td>Unique key for dedupe over a Redis set. One store, one transaction, so INV-1 holds by construction.</td></tr>
+          </tbody></table>
+        </div>
+        <div class="box">
+          <h3>Slices (each one usable)</h3>
+          <table><tbody>
+            <tr><td class="mono">S1 capture</td><td>Events stored durably and replayable. The poller still applies them. Usable: nothing is lost from day one.</td></tr>
+            <tr><td class="mono">S2 apply</td><td>Exactly-once apply. Poller turned off.</td></tr>
+            <tr><td class="mono">S3 harden</td><td>Backpressure and metrics for NFR-1 and NFR-2.</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+      <div class="callout ok">
+        <b>Tests written from the spec, before code.</b>
+        <span>A <code>test-author</code> agent writes the acceptance and property tests from requirements, invariants and interfaces. It never sees implementer output. Example: <code>prop_apply_once</code> runs 1,000 random crash schedules and asserts INV-1.</span>
+      </div>
+      <div class="gate"><span class="label">Human gate</span><span>Design sign-off: components, ADRs, slices, test list.</span><span class="who">you: approved</span></div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">design.md · adr/ · tasks.yaml · tests/</span></div>
+      <div><span class="label">Agent</span><span class="v">app-architect, test-author</span></div>
+      <div><span class="label">Model</span><span class="v">opus</span></div>
+      <div><span class="label">Rev</span><span class="v">A</span></div>
+      <div><span class="label">Gate</span><span class="v">approved</span></div>
+    </div>
+  </article>
+
+  <!-- STAGE 4 -->
+  <article class="sheet" id="impl">
+    <div class="stripe" style="background:var(--s4)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Implementation</h2><span class="label">Sheet 4 of 5 · snapshot during slice S2</span></div>
+      <div class="cols">
+        <div class="box">
+          <h3>tasks.yaml</h3>
+<pre class="spec">- id: T5
+  label: idempotent-applier
+  slice: S2
+  depends_on: [T1]
+  size: M
+  reads: [design.md#applier, concept.md#INV-1]
+  tests: [prop_apply_once, acc_no_double_count]
+  done_when: listed tests pass, review approved</pre>
+        </div>
+        <div class="box">
+          <h3>Board</h3>
+          <ul class="board">
+            <li><span>✅</span><span><code>S1 capture</code> shipped, slice review approved</span></li>
+            <li><span>✅</span><span><code>T4 claim-loop</code></span></li>
+            <li><span>👀</span><span><code>T5 idempotent-applier</code> review round 2</span></li>
+            <li><span>🔲</span><span><code>T6 worker-wiring</code> waits on T4, T5</span></li>
+            <li><span>🔲</span><span><code>S3 harden</code> T7, T8</span></li>
+            <li><span>❓</span><span><code>replay-retention</code> how long to keep applied rows</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="display:grid;gap:8px">
+        <h3>Task DAG</h3>
+        <div class="dag-wrap">
+          <svg class="dag" viewBox="0 0 720 340" role="img" aria-label="Task dependency graph across three slices">
+            <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+            <text class="layer" x="90" y="13" text-anchor="middle">layer 0</text>
+            <text class="layer" x="270" y="13" text-anchor="middle">layer 1</text>
+            <text class="layer" x="450" y="13" text-anchor="middle">layer 2</text>
+            <text class="layer" x="630" y="13" text-anchor="middle">layer 3</text>
+            <rect class="band" x="4" y="22" width="712" height="94"/>
+            <rect class="band" x="4" y="124" width="712" height="94"/>
+            <rect class="band" x="4" y="226" width="712" height="104"/>
+            <text class="band-label" x="708" y="38" text-anchor="end">S1 capture</text>
+            <text class="band-label" x="708" y="140" text-anchor="end">S2 apply</text>
+            <text class="band-label" x="708" y="242" text-anchor="end">S3 harden</text>
+            <line class="layer-line" x1="180" y1="22" x2="180" y2="330"/>
+            <line class="layer-line" x1="360" y1="22" x2="360" y2="330"/>
+            <line class="layer-line" x1="540" y1="22" x2="540" y2="330"/>
+            <g marker-end="url(#ah)">
+              <path class="edge" d="M160,69 C200,69 160,49 198,49"/>
+              <path class="edge" d="M160,69 C200,69 160,91 198,91"/>
+              <path class="edge" d="M160,69 C190,69 170,151 198,151"/>
+              <path class="edge" d="M160,69 C190,69 170,191 198,191"/>
+              <path class="edge" d="M340,151 C370,151 350,171 378,171"/>
+              <path class="edge" d="M340,191 C370,191 350,171 378,171"/>
+              <path class="edge" d="M520,171 C550,171 530,257 558,257"/>
+              <path class="edge" d="M520,171 C550,171 530,299 558,299"/>
+              <path class="edge" d="M340,49 C470,49 440,257 558,257"/>
+            </g>
+            <g class="node done"><rect x="20" y="54" width="140" height="30"/><text x="30" y="73">T1 inbox-schema</text></g>
+            <g class="node done"><rect x="200" y="34" width="140" height="30"/><text x="210" y="53">T2 ingress</text></g>
+            <g class="node done"><rect x="200" y="76" width="140" height="30"/><text x="210" y="95">T3 replay-cli</text></g>
+            <g class="node done"><rect x="200" y="136" width="140" height="30"/><text x="210" y="155">T4 claim-loop</text></g>
+            <g class="node review"><rect x="200" y="176" width="140" height="30"/><text x="210" y="195">T5 applier</text></g>
+            <g class="node todo"><rect x="380" y="156" width="140" height="30"/><text x="390" y="175">T6 worker-wiring</text></g>
+            <g class="node todo"><rect x="560" y="242" width="140" height="30"/><text x="570" y="261">T7 backpressure</text></g>
+            <g class="node todo"><rect x="560" y="284" width="140" height="30"/><text x="570" y="303">T8 metrics</text></g>
+          </svg>
+        </div>
+        <div class="legend"><span><i class="l-done"></i>done</span><span><i class="l-rev"></i>in review</span><span><i class="l-todo"></i>to do</span><span>Slices run in order. Tasks in one layer of a slice run in parallel (T4 and T5 ran together).</span></div>
+      </div>
+
+      <div class="box">
+        <h3>Peer review of T5, max 3 rounds</h3>
+        <div class="rounds">
+          <div class="round"><span class="r">Round 1</span><div><span><span class="pill bad">Critical</span> <code>applier.clj:41</code> commits the order write, then updates the inbox status in a second transaction. This is CE-1 from stage 2 (loopback L2). Repro: <code>prop_apply_once</code> fails with seed 8813.</span><span>Implementer: fixed. One transaction for both writes.</span></div></div>
+          <div class="round"><span class="r">Round 2</span><div><span><span class="pill gate">Important</span> <code>applier.clj:58</code> no retry on serialization failure. Under load, events stay claimed until the lease expires, which delays them past the 5-minute limit (NFR-2).</span><span>Implementer: fixed. Bounded retry, 3 attempts.</span></div></div>
+          <div class="round"><span class="r">Round 3</span><div><span><span class="pill ok">Approved</span> Reviewer re-ran both tests. No new findings.</span><span style="color:var(--ink-2)">If round 3 had not converged: stop, write both positions to the board as ❓, and ask you.</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">code + per-task commits on a branch</span></div>
+      <div><span class="label">Agent</span><span class="v">implementer ×1 per task</span></div>
+      <div><span class="label">Model</span><span class="v">sonnet</span></div>
+      <div><span class="label">Rev</span><span class="v">n/a</span></div>
+      <div><span class="label">Gate</span><span class="v">peer review per task</span></div>
+    </div>
+  </article>
+
+  <!-- STAGE 5 -->
+  <article class="sheet" id="review">
+    <div class="stripe" style="background:var(--s5)"></div>
+    <div class="sheet-body">
+      <div class="sheet-head"><h2>Review</h2><span class="label">Sheet 5 of 5</span></div>
+      <div class="cols">
+        <div class="box">
+          <h3>Slice review (after each slice)</h3>
+          <p style="font-size:14px">The eight <code>branch-review</code> lenses run on the slice diff, plus one check: is the slice usable on its own?</p>
+          <table><tbody>
+            <tr><td class="mono">S1</td><td><span class="pill ok">approved</span> 0 Critical, 1 Nit</td></tr>
+            <tr><td class="mono">S2</td><td><span class="pill gate">running</span></td></tr>
+            <tr><td class="mono">S3</td><td><span class="pill acc">not started</span></td></tr>
+          </tbody></table>
+        </div>
+        <div class="box">
+          <h3>Final review (after S3)</h3>
+          <ul style="margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px">
+            <li>Every matrix row has all six columns filled.</li>
+            <li>Every invariant has a test at its tier.</li>
+            <li>No component writes orders except <code>applier</code> (conceptual integrity).</li>
+            <li>Every deviation from <code>design.md</code> has an ADR.</li>
+            <li>NFR numbers are measured, not estimated.</li>
+            <li>One review pass on a different model.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="gate"><span class="label">Human gate</span><span>Final sign-off, then you commit and push.</span><span class="who">agents never push</span></div>
+    </div>
+    <div class="tblock">
+      <div><span class="label">Output</span><span class="v">review.md · matrix complete</span></div>
+      <div><span class="label">Agent</span><span class="v">gate-reviewer ×8 lenses</span></div>
+      <div><span class="label">Model</span><span class="v">opus + 1 other</span></div>
+      <div><span class="label">Rev</span><span class="v">n/a</span></div>
+      <div><span class="label">Gate</span><span class="v">pending</span></div>
+    </div>
+  </article>
+
+  <!-- MATRIX -->
+  <section class="sheet" id="trace">
+    <div class="sheet-body">
+      <div class="matrix-head">
+        <div style="display:grid;gap:4px"><h2>Traceability matrix</h2><p style="color:var(--ink-2);font-size:14px">Each stage fills its column. A red dash at a gate means the stage is not done.</p></div>
+        <div class="stage-pick" role="group" aria-label="Show matrix as of stage">
+          <button type="button" data-s="1" aria-pressed="false">After 1</button>
+          <button type="button" data-s="2" aria-pressed="false">After 2</button>
+          <button type="button" data-s="3" aria-pressed="false">After 3</button>
+          <button type="button" data-s="4" aria-pressed="false">After 4</button>
+          <button type="button" data-s="5" aria-pressed="true">After 5</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="matrix">
+          <thead><tr>
+            <th><span class="sw" style="background:var(--s1)"></span>Requirement</th>
+            <th><span class="sw" style="background:var(--s2)"></span>Invariant / estimate</th>
+            <th><span class="sw" style="background:var(--s3)"></span>Component</th>
+            <th><span class="sw" style="background:var(--s3)"></span>Test</th>
+            <th><span class="sw" style="background:var(--s4)"></span>Task</th>
+            <th><span class="sw" style="background:var(--s5)"></span>Evidence</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink-2)">Impact analysis uses the same table. If <code>FR-4</code> changes from 24 h to 7 days, the matrix points to <code>inbox</code>, <code>T1</code> and <code>prop_dup_within_24h</code>, and nothing else.</p>
+    </div>
+  </section>
+
+  <!-- CONTEXT -->
+  <section class="sheet" id="context">
+    <div class="sheet-body">
+      <div style="display:grid;gap:4px"><h2>Who holds which context</h2><p style="color:var(--ink-2);font-size:14px">Files carry context between stages. Only reviewers keep a live context, so a re-check after fixes does not start cold.</p></div>
+      <div class="tbl-wrap">
+        <table class="ctx">
+          <thead><tr><th>Role</th><th>Lifetime</th><th>Reads</th><th>Writes</th><th>Model</th></tr></thead>
+          <tbody>
+            <tr><td>requirements-analyst</td><td>Stage 1, kept across interview rounds</td><td>Ticket, your answers, existing logs</td><td>requirements.md</td><td>opus</td></tr>
+            <tr><td>concept-modeler</td><td>Stage 2</td><td>requirements.md</td><td>concept.md, model.tla</td><td>opus</td></tr>
+            <tr><td>app-architect</td><td>Stage 3</td><td>requirements.md, concept.md, codebase</td><td>design.md, adr/, tasks.yaml</td><td>opus</td></tr>
+            <tr><td>test-author</td><td>End of stage 3</td><td>Requirements, invariants, interfaces</td><td>tests/</td><td>opus</td></tr>
+            <tr><td>implementer</td><td>One fresh agent per task</td><td>Task card and the sections it links</td><td>Code diff</td><td>sonnet</td></tr>
+            <tr><td>peer-reviewer</td><td>One per slice, kept via SendMessage</td><td>Spec sections and diff, not implementer reasoning</td><td>Review notes</td><td>opus</td></tr>
+            <tr><td>gate-reviewer</td><td>Per slice and final</td><td>Everything, plus the matrix</td><td>review.md</td><td>opus + 1 other</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>Tracker: the session board for live status, Linear as the record. Mechanism: Claude Code skills, subagents, SendMessage and Workflow <code>pipeline</code> over the DAG layers. Policy: this lifecycle.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  // Columns: [req, inv, comp, test, task, evidence]; stage that fills each column.
+  var colStage = [1, 2, 3, 3, 4, 5];
+  var rows = [
+    ["BR-1 nothing lost", "INV-2 NoLoss", "ingress, inbox", "acc_no_loss_on_crash", "T1, T2", "pass"],
+    ["BR-2 no double count", "INV-1 NoDoubleApply", "applier", "prop_apply_once", "T5, T6", "pass, 1,000 schedules"],
+    ["FR-1 accept POST", "none", "ingress", "acc_accepts_valid", "T2", "pass"],
+    ["FR-2 bad signature", "INV-3 OnlySigned", "ingress", "acc_rejects_bad_sig", "T2", "pass"],
+    ["FR-3 replay range", "none", "replay-cli", "acc_replay_range", "T3", "pass"],
+    ["FR-4 24 h dedupe", "INV-1 NoDoubleApply", "inbox", "prop_dup_within_24h", "T1", "pass"],
+    ["G-1 per-order order", "INV-4 PerOrderOrder", "claim-loop", "prop_order_kept", "T4", "pass"],
+    ["NFR-1 p99 ack ≤ 200 ms", "est. ρ = 0.67", "ingress, backpressure", "bench_ack_p99", "T2, T7", "p99 142 ms"],
+    ["NFR-2 2,000/s, ≤ 5 min", "est. 8 erlangs", "claim-loop, applier", "bench_throughput", "T6, T7", "2,300/s, max lag 41 s"]
+  ];
+  var tbody = document.querySelector("#matrix tbody");
+  var buttons = document.querySelectorAll(".stage-pick button");
+  function render(stage) {
+    tbody.innerHTML = "";
+    rows.forEach(function (r) {
+      var tr = document.createElement("tr");
+      r.forEach(function (cell, i) {
+        var td = document.createElement("td");
+        if (colStage[i] <= stage) { td.textContent = cell; if (i > 0 && i < 5) td.className = "mono"; }
+        else if (colStage[i] === stage + 1) { td.textContent = "–"; td.className = "gap"; }
+        else { td.textContent = "·"; td.className = "empty"; }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(+b.dataset.s === stage)); });
+  }
+  buttons.forEach(function (b) { b.addEventListener("click", function () { render(+b.dataset.s); }); });
+  render(5);
+})();
+</script>
