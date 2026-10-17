@@ -185,8 +185,9 @@ changed requirement reads the same matrix.
 ### 7.1 Principles as checks
 
 Each principle is a question with a visible answer in `design.md`. The
-component fields are: responsibility, owns, exposes, depends_on, realizes,
-pattern, domain.
+component fields are: responsibility, layer (ui, domain, persistence, infra),
+owns, exposes, depends_on, realizes, pattern, domain (the pack). The pack's
+`layers.yaml` lists forbidden layer dependencies.
 
 | Principle | Check |
 |---|---|

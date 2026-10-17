@@ -1,0 +1,15 @@
+- id: T1
+  slice: S1
+  depends_on: []
+  covers: [INV-2]
+  tests: [no-loss-on-crash]
+- id: T2
+  slice: S1
+  depends_on: [T1]
+  covers: [FR-1]
+  tests: [accepts-valid]
+- id: T3
+  slice: S2
+  depends_on: [T1]
+  covers: [INV-1]
+  tests: [apply-once]

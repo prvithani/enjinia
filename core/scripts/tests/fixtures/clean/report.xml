@@ -1,0 +1,7 @@
+<testsuites>
+  <testsuite name="ingest.core-test">
+    <testcase classname="ingest.core-test" name="no-loss-on-crash"/>
+    <testcase classname="ingest.core-test" name="accepts-valid"/>
+    <testcase classname="ingest.core-test" name="apply-once"/>
+  </testsuite>
+</testsuites>

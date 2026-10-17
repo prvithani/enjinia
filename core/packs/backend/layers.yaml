@@ -1,0 +1,4 @@
+# Layer dependencies the backend pack forbids: [from_layer, to_layer].
+# Read by core/scripts/trace_check.py (spec.md section 7.1).
+forbidden:
+  - [domain, infra]
