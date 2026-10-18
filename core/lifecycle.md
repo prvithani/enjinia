@@ -28,8 +28,8 @@ branch); it records the choice in `triage.md`.
 2. `stages/requirements.md`
 3. `stages/concept.md` (calls `stages/spike.md` when a fact must be measured)
 4. `stages/app-design.md` (stage 3)
-5. implementation and review: not built yet. Stop after stage 3 with a
-   report.
+5. `stages/implement.md` (stage 4), slice by slice
+6. `stages/phase-review.md` (stage 5), per slice and at the end
 
 ## Autonomy
 
