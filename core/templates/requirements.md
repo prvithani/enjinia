@@ -26,6 +26,12 @@ Status: draft | approved <date>
 - G-1: <text>
 - NG-1: <text>
 
+## Assumptions
+
+<!-- Plain bullets, no ids: an id would make trace_check demand coverage. -->
+
+- <what the requirements rely on, and who said so>
+
 ## Open
 
 - <question not yet answered, and who can answer it>

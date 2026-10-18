@@ -25,6 +25,9 @@ Output: `<feature-dir>/concept.md` from `templates/concept.md`, models under
    - For every design that passes, run one mutant that must fail (drop one
      check). If the mutant also passes, the model cannot see that check:
      widen it (more items, partitions or actors) before trusting the pass.
+   - List every simplification that fixes something the real system varies
+     (a constant, a fixed shape, a single instance) and say why a defect
+     cannot hide there. If you cannot say why, make it vary in the model.
    - If TLC is not installed, mark the invariant `degraded` and fall back to a
      property test. Say so in the stage report.
 4. Estimates (latency, size, cost) are labelled `estimate` with their inputs.

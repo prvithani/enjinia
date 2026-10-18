@@ -18,3 +18,6 @@
   - Each test says in its name or docstring why the behavior matters.
   - Run every test on the current code and report: new behavior fails, `EB-`
     passes. Report the command and its output.
+  - Check the tests can pass: a throwaway stub of the design, outside the
+    repo, must make them green. A test no implementation can pass is as
+    useless as one that cannot fail. Never commit the stub.

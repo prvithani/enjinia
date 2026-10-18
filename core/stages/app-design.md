@@ -20,17 +20,20 @@ Output: `<feature-dir>/design.md` from `templates/design.md`, ADRs,
    as its own slice; behavior changes after it.
 6. Tasks: one per unit of work in `tasks.yaml`; `depends_on` forms a graph
    (no cycles); every requirement and invariant is covered by a task.
-7. Run `trace_check.py <feature-dir> --stage 3`. Structural gaps (cycles,
+7. List the existing tests and fixtures the change breaks or must update
+   (pinned behavior, seed data, browser fixtures) as tasks. A design that
+   turns a pinned test red without naming it is incomplete.
+8. Run `trace_check.py <feature-dir> --stage 3`. Structural gaps (cycles,
    layers, owners, realizes) are fixed before review.
-8. Design review: `spawn(design-reviewer, brief)` with `design.md`,
+9. Design review: `spawn(design-reviewer, brief)` with `design.md`,
    `concept.md`, `requirements.md`, `../principles.md` and the ADRs. Fix or
    answer each finding; the same reviewer re-checks (`message`). At most 3
    rounds, then `gate` with both positions.
-9. Tests: `spawn(test-author, brief)` after the review passes. Then run the
+10. Tests: `spawn(test-author, brief)` after the review passes. Then run the
    tests on the current code: tests for new behavior must fail, tests for
    `EB-` rows must pass. A new-behavior test that passes today tests
    nothing; send it back.
-10. Run `trace_check.py <feature-dir> --stage 3 --tests <dir>` and report.
+11. Run `trace_check.py <feature-dir> --stage 3 --tests <dir>` and report.
 
 Gate: the human approves `design.md`, `tasks.yaml` and the test list. At L2
 the lead approves this gate itself and logs it as an `auto` ADR.
