@@ -1,0 +1,7 @@
+# Client layers: views depend on state, state on services; never upward.
+layers: [view, state, service, platform]
+forbidden:
+  - [service, view]
+  - [service, state]
+  - [platform, view]
+  - [state, view]

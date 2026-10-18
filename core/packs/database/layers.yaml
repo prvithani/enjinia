@@ -1,0 +1,4 @@
+# Same layers as backend; schema work lives in persistence.
+layers: [ui, domain, persistence, infra]
+forbidden:
+  - [domain, infra]

@@ -1,0 +1,8 @@
+# Engine layers; a lower layer never calls a higher one.
+layers: [sql, execution, transaction, storage, io]
+forbidden:
+  - [io, storage]
+  - [io, transaction]
+  - [storage, transaction]
+  - [storage, execution]
+  - [transaction, execution]

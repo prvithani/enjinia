@@ -1,0 +1,8 @@
+# Layers an ml-ds component may declare, and forbidden dependencies:
+# [from_layer, to_layer]. Evaluation must not depend on training code
+# paths that could leak, and data preparation must not depend on the model.
+layers: [data, features, model, evaluation, serving]
+forbidden:
+  - [data, model]
+  - [features, model]
+  - [evaluation, model]

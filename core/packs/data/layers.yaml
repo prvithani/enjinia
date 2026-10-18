@@ -1,0 +1,7 @@
+# Layers of a data pipeline; a later layer reads earlier ones only.
+layers: [source, staging, intermediate, mart, serving]
+forbidden:
+  - [source, staging]
+  - [staging, intermediate]
+  - [staging, mart]
+  - [intermediate, mart]
