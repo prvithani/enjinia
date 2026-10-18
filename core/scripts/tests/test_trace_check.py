@@ -91,6 +91,12 @@ CASES = {
     "task-test-missing": (
         {"tasks.yaml": ("tests: [accepts-valid]", "tests: [accepts-valid, rejects-bad-sig]")},
         {"task-test-missing"}),
+    "invariant-not-enforced": (
+        {"design.md": ("    enforces: [INV-1]\n", "")},
+        {"invariant-not-enforced"}),
+    "component-enforces-unknown": (
+        {"design.md": ("enforces: [INV-1]", "enforces: [INV-1, INV-9]")},
+        {"component-enforces-unknown"}),
     "requirement-without-component": (
         {"design.md": ("realizes: [FR-1, INV-2]", "realizes: [INV-2]")},
         {"requirement-without-component"}),
@@ -121,6 +127,7 @@ INVALID = {
     "missing required field": ({"concept.md": ("    tier: property\n", "")}, "missing `tier`"),
     "unknown layer": ({"design.md": ("layer: domain", "layer: domian")}, "`layer` is 'domian'"),
     "number read from 1.10": ({"tasks.yaml": ("slice: S2", "slice: 1.10")}, "`slice` is 1.1"),
+    "unknown component kind": ({"design.md": ("kind: policy", "kind: service")}, "`kind` is 'service'"),
     "record not a mapping": ({"tasks.yaml": ("- id: T3", "- T3\n- id: T4")}, "expected a mapping"),
 }
 

@@ -27,8 +27,9 @@ branch); it records the choice in `triage.md`.
 1. `stages/as-is.md` (existing mode only; may run beside step 2)
 2. `stages/requirements.md`
 3. `stages/concept.md` (calls `stages/spike.md` when a fact must be measured)
-4. application design, implementation, review: not built yet. Stop after
-   stage 2 with a report.
+4. `stages/app-design.md` (stage 3)
+5. implementation and review: not built yet. Stop after stage 3 with a
+   report.
 
 ## Autonomy
 

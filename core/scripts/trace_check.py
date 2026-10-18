@@ -13,7 +13,9 @@ Formats read from SPEC_DIR (see tests/fixtures/clean for an example):
                    model: path (formal tier only, relative to SPEC_DIR)}.
   design.md        a ```yaml block with `components:`, each
                    {name, layer, owns: [entities], depends_on: [names],
-                   realizes: [req or invariant ids], ...}.
+                   realizes: [req or invariant ids], kind, enforces:
+                   [invariant ids], ...}. Once components exist, every
+                   invariant needs a component that enforces it.
   tasks.yaml       list of {id, slice, depends_on, covers, tests, ...}.
 Tests: Clojure `(deftest ^{:covers [:BR-1 :INV-2]} name ...)` under --tests.
 Report: JUnit XML; a test passes if its testcase has no failure or error.
@@ -47,7 +49,8 @@ SCHEMAS = {
     "invariant": {"id": ("id", True), "covers": ("ids", True),
                   "tier": ({"formal", "property", "example"}, True), "model": ("str", False)},
     "component": {"name": ("str", True), "layer": ("layer", True), "owns": ("names", False),
-                  "depends_on": ("names", False), "realizes": ("ids", False)},
+                  "depends_on": ("names", False), "realizes": ("ids", False),
+                  "kind": ({"mechanism", "policy", "glue"}, False), "enforces": ("ids", False)},
     "task": {"id": ("str", True), "slice": ("str", False), "depends_on": ("names", False),
              "covers": ("ids", False), "tests": ("names", False)},
 }
@@ -239,6 +242,12 @@ def check(spec, test_dirs=(), reports=(), layers_file=DEFAULT_LAYERS):
     for i in inv_ids:
         if not any(i in ids for ids in test_covers.values()):
             gaps.append(Gap(3, "invariant-without-test", i))
+    enforced = {i for c in comps for i in c.get("enforces") or []}
+    if comps:
+        gaps += [Gap(3, "invariant-not-enforced", i) for i in inv_ids if i not in enforced]
+    for c in comps:
+        gaps += [Gap(3, "component-enforces-unknown", f"{c['name']} -> {i}")
+                 for i in c.get("enforces") or [] if i not in inv_ids]
 
     # Stage 4: tasks.
     task_deps = {t["id"]: t.get("depends_on") or [] for t in tasks}

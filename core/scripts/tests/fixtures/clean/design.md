@@ -7,14 +7,19 @@ components:
     owns: [webhook-request]
     depends_on: [inbox]
     realizes: [FR-1, INV-2]
+    kind: glue
   - name: inbox
     layer: persistence
     owns: [inbox-row]
     depends_on: []
     realizes: [INV-2]
+    kind: mechanism
+    enforces: [INV-2]
   - name: applier
     layer: domain
     owns: [order]
     depends_on: [inbox]
     realizes: [INV-1]
+    kind: policy
+    enforces: [INV-1]
 ```

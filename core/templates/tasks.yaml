@@ -1,0 +1,10 @@
+# One entry per task. trace_check reads id, slice, depends_on, covers, tests.
+- id: T1
+  label: <kebab-case label>
+  slice: S1
+  depends_on: []
+  covers: [FR-1]
+  size: S            # bucket: S, M or L; not a time estimate
+  reads: [design.md#<component>, concept.md#INV-1]
+  tests: [<test name>]
+  done_when: listed tests pass; peer review approved
