@@ -12,4 +12,6 @@ Recover only the blast radius from `triage.md`:
 - test coverage of the blast radius: which behavior is pinned, which is not.
 
 Every line cites file:line. Anything not read is listed under "Not read".
+A file in the blast radius that was not read is a gap: the design may not
+mark its component unchanged until someone reads it.
 The lead checks three citations at random before using the result.

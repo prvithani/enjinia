@@ -1,0 +1,8 @@
+# Layers an ai-engineering component may declare, and forbidden
+# dependencies: [from_layer, to_layer]. The orchestrator is code and must
+# not depend on a role's model output format directly; it goes through the
+# role boundary.
+layers: [ui, orchestrator, role, tool, infra]
+forbidden:
+  - [tool, orchestrator]
+  - [role, orchestrator]

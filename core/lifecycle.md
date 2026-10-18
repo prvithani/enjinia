@@ -46,9 +46,16 @@ against the approved requirements and concept before it is recorded (a
 check skipped in the first trial let an auto ADR contradict an approved
 concept). Each stage report lists the stage's `auto` ADRs.
 
+When no human is available (an eval or replay run), every stop below is
+recorded as an open gate in the stage report, with the default the lead
+took; the run never passes one silently, and its results say which gates
+were open.
+
 Always `stop` and ask, at every level, when:
 - a requirement or invariant would change;
 - a decision would change behavior an existing test pins;
+- a key decision rests on an unverified hypothesis that a spike cannot
+  check (for example a dependency whose source is not available);
 - the model checker finds a violation that no design change fixes;
 - a review loop reaches 3 rounds;
 - cost or time passes twice the estimate;
