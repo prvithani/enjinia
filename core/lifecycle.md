@@ -41,8 +41,14 @@ Triage proposes a level; the human confirms it at the requirements gate.
 | L2 (default) | requirements, concept | design, plan, slice reviews |
 | L3 | requirements, final review | everything between |
 
+Every decision the lead makes for the human is an `auto` ADR, checked
+against the approved requirements and concept before it is recorded (a
+check skipped in the first trial let an auto ADR contradict an approved
+concept). Each stage report lists the stage's `auto` ADRs.
+
 Always `stop` and ask, at every level, when:
 - a requirement or invariant would change;
+- a decision would change behavior an existing test pins;
 - the model checker finds a violation that no design change fixes;
 - a review loop reaches 3 rounds;
 - cost or time passes twice the estimate;
