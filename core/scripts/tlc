@@ -1,0 +1,12 @@
+#!/bin/sh
+# Run the TLA+ model checker on one spec: tlc <spec.tla> [TLC options].
+# The .cfg beside the spec is used. Jar: $ENJINIA_TLA_JAR, else
+# ~/.local/share/tla/tla2tools.jar. Exit 3 when no jar is found.
+jar="${ENJINIA_TLA_JAR:-$HOME/.local/share/tla/tla2tools.jar}"
+if [ ! -f "$jar" ]; then
+  echo "tlc: no TLA+ tools at $jar; set ENJINIA_TLA_JAR or install tla2tools.jar" >&2
+  exit 3
+fi
+spec="$1"; shift
+cd "$(dirname "$spec")" || exit 2
+exec java -XX:+UseParallelGC -cp "$jar" tlc2.TLC -workers auto -cleanup "$@" "$(basename "$spec")"
