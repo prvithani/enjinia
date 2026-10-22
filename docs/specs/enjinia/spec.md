@@ -8,7 +8,7 @@ Related: `dual-reviewer.md` (second-vendor reviewer protocol), `demo.html`
 
 ## 1. Purpose
 
-Enjinia runs software work the way a principal engineer and architect does:
+Enjinia runs a software engineering workflow like a senior engineer:
 requirements, conceptual design, application design, implementation and
 review, with gates, loopbacks and evidence at each step. A team of agents
 does the work. The human owns the decisions that matter and can delegate the
